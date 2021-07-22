@@ -1,70 +1,98 @@
-# Getting Started with Create React App
+## Using google-map-react to create 2 pins and getting the distance between them
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### Calculating the distance between 2 coordinates
+https://www.movable-type.co.uk/scripts/latlong.html
 
-## Available Scripts
+```javascript
+const distanceCalc = (lat1, lon1, lat2, lon2) => {
 
-In the project directory, you can run:
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
 
-### `yarn start`
+    const a =   Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+    const d = R * c; // in metres
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+    return d
+};
 
-### `yarn test`
+export default distanceCalc;
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Custom marker from
+https://levelup.gitconnected.com/reactjs-google-maps-with-custom-marker-ece0c7d184c4
 
-### `yarn build`
+Then I changed the .pin margin to  
+```css
+margin: -40px 0 0 -20px;
+```
+and the .pulse to
+```css
+margin: -9px 0px 0px -12px;
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+This is so that the point of this pin is in the currect location. 
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### main code
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `yarn eject`
+took me a while to get the on clickworking 
+```javascript
+onClick={(e) => setpin(e)}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+The map
+```javascript
+<GoogleMapReact
+    bootstrapURLKeys={{ key:'my key' }}
+    defaultCenter={defaultProps.center}
+    defaultZoom={defaultProps.zoom}
+    onClick={(e) => setpin(e)}
+>
+    <Marker
+        lat={coordinates.selected_lat_1}
+        lng={coordinates.selected_lng_1}
+        name="My Marker"
+        color="blue"
+    />
+    <Marker
+        lat={coordinates.selected_lat_2}
+        lng={coordinates.selected_lng_2}
+        name="My Marker"
+        color="red"
+    />
+</GoogleMapReact>
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The setpin func
+```javascript
+  function setpin(e) {
+    if (flip_flp === 0) {
+      flip_flp = 1
+      if (coordinates.selected_lat_2 !== 0) {
+        d = distanceCalc(e.lat, e.lng, coordinates.selected_lat_2, coordinates.selected_lng_2)
+      }
+      setcoordinates(coordinates => ({
+        ...coordinates,
+        selected_lat_1: e.lat,
+        selected_lng_1: e.lng,
+        distance: d,
+      }))
+    } else {
+      flip_flp = 0
+      d = distanceCalc(coordinates.selected_lat_1, coordinates.selected_lng_1, e.lat, e.lng)
+      setcoordinates(coordinates => ({
+        ...coordinates,
+        selected_lat_2: e.lat,
+        selected_lng_2: e.lng,
+        distance: d,
+      }))
+    }
+  }
+```
