@@ -51,7 +51,7 @@ function App() {
     // Important! Always set the container height explicitly
     <div style={{ height: '600px ', width: '600px' }}>
       <GoogleMapReact
-        bootstrapURLKeys={{ key: 'AIzaSyDU_VebItheUUVLrkNeCLbzFduLFUAG0eU' }}
+        bootstrapURLKeys={{ key: '#### your pin ' }}
         defaultCenter={defaultProps.center}
         defaultZoom={defaultProps.zoom}
         onClick={(e) => setpin(e)}
@@ -77,5 +77,3 @@ function App() {
 }
 
 export default App;
-
-//apiKey: 'AIzaSyCw1Cu5QmZqsFLWq-D7m12E3Qqjjj13xWY'
